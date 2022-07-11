@@ -1,0 +1,367 @@
+---
+title: "Google Capstone Project"
+author: "Author: Deuel"
+date: "Date: 5th April 2022"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### **Case Study 1: How does a bike-share navigate speedy success?**
+<br>
+
+
+###  **1.0 Ask**
+#### **1.1 Identify the Business Task**
+How do annual members and casual riders use Cyclistic bikes differently?
+<br><br>
+
+#### **1.2 Deliverables**
+1. A clear statement of the business task
+2. A description of all data sources used
+3. Documentation of any cleaning or manipulation of data
+4. A summary of your analysis
+5. Supporting visualizations and key findings
+6. Top three recommendations based on analysis
+<br><br>
+
+#### **1.3 Stakeholders**
+1. Cyclistic executive team - Decides whether to approve the recommended marketing program.
+2. Cyclistic marketing analytics team - Team responsible for collecting, analyzing, and reporting data that helps guide Cyclistic marketing strategy.
+3. Lily Moreno - Director of marketing
+<br><br>
+
+###  **2.0 Prepare**
+#### **2.1 Data Information**
+ - Data can be found at this [link](https://divvy-tripdata.s3.amazonaws.com/index.html)
+ - We are using the latest 12 months of data (May 2021 - April 2022), with available data dating back to 2013.
+<br><br>
+
+#### **2.2 Data ROCCC**
+ - **R**eliable - Data owned by Bikeshare(in this project, Cyclistic)
+ - **O**riginal - Data directly collected from Bikeshare
+ - **C**omprehensive - Data contains the necessity needed, such as membership status, locations, time, etc.
+ - **C**urrent - Data being used is most current, with earliest data being April 2021.
+ - **C**ited - Data collected by Bikeshare
+
+
+The dataset provided fufills ROCCC.
+<br><br>
+
+
+###  **3.0 Process**
+#### **3.1 Data Understanding**
+We would be using R to process the dataset.
+
+Load libraries
+```{r load libraries, warning=FALSE, message=FALSE}
+library(dplyr)
+library(readxl)
+library(rmarkdown)
+library(tidyverse)
+```
+<br>
+
+Importing the datasets into R
+```{r read files}
+May21 <- read_excel("D:/CapstonesData/Bike/202105-divvy-tripdata.xlsx")
+Jun21 <- read_excel("D:/CapstonesData/Bike/202106-divvy-tripdata.xlsx")
+Jul21 <- read_excel("D:/CapstonesData/Bike/202107-divvy-tripdata.xlsx")
+Aug21 <- read_excel("D:/CapstonesData/Bike/202108-divvy-tripdata.xlsx")
+Sep21 <- read_excel("D:/CapstonesData/Bike/202109-divvy-tripdata.xlsx")
+Oct21 <- read_excel("D:/CapstonesData/Bike/202110-divvy-tripdata.xlsx")
+Nov21 <- read_excel("D:/CapstonesData/Bike/202111-divvy-tripdata.xlsx")
+Dec21 <- read_excel("D:/CapstonesData/Bike/202112-divvy-tripdata.xlsx")
+Jan22 <- read_excel("D:/CapstonesData/Bike/202201-divvy-tripdata.xlsx")
+Feb22 <- read_excel("D:/CapstonesData/Bike/202202-divvy-tripdata.xlsx")
+Mar22 <- read_excel("D:/CapstonesData/Bike/202203-divvy-tripdata.xlsx")
+Apr22 <- read_excel("D:/CapstonesData/Bike/202204-divvy-tripdata.xlsx")
+
+```
+<br>
+
+Viewing the structure of April 2022 dataframe
+```{r }
+# views the attributes' datatype, number of rows, and row values
+str(Apr22)
+```
+A brief description of the dataframe and attributes:
+
+
+* Entire dataframe consists of `371,249` records and `13` attributes
+* `ride_id` - Trip identifier.
+* `rideable_type` - Type of bike used: `classic_bike`, `docked_bike`, and `electric_bike`. (`docked_bike` were used for quality control)
+* `started_at` - Date and time when trip begun.
+* `ended_at` - Date and time when trip ended.
+* `start_station_name` - Name of the location where the trip begun.
+* `start_station_id` - Identifier of the location where the  begun.
+* `end_station_name` - Name of the location where the trip ended
+* `end_station_id` - Identifier of the location where the trip ended.
+* `start_lat` - Latitudinal coordinates where the trip begun.
+* `start_lng` - Longitudinal coordinates where the trip begun.
+* `end_lat` - Latitudinal coordinates where the trip ended.
+* `eng_lng` - Longitudinal coordinates where the trip ended.
+* `member_casual` Binary class on a rider's membership: `casual` or `member`.
+
+
+The following errors were observed:
+
+
+* Incorrect datatype for `rideable_type`, `member_casual` as both should be `factor` instead of `character.` 
+<br><br>
+
+We will now append all the dataframes together. To identify which month a record is, a new `month` column will be added.
+Adding `month` column.
+```{r add month column, results='hide'}
+# adds a new column 'month' with values that corresponds to each month
+May21_new <- mutate(May21, month = 'may')
+Jun21_new <- mutate(Jun21, month = 'june')
+Jul21_new <- mutate(Jul21, month = 'july')
+Aug21_new <- mutate(Aug21, month = 'august')
+Sep21_new <- mutate(Sep21, month = 'september')
+Oct21_new <- mutate(Oct21, month = 'october')
+Nov21_new <- mutate(Nov21, month = 'november')
+Dec21_new <- mutate(Dec21, month = 'december')
+Jan22_new <- mutate(Jan22, month = 'january')
+Feb22_new <- mutate(Feb22, month = 'february')
+Mar22_new <- mutate(Mar22, month = 'march')
+Apr22_new <- mutate(Apr22, month = 'april')
+```
+Newly added `month` has a datatype of `character`, which is to be corrected to `factor`.
+<br><br>
+
+Combining all the dataframes to `all_bike`
+```{r all_bike}
+# appends all 12 dataframes into a single dataframe 'all_bike'
+all_bike <- rbind(May21_new, Jun21_new, Jul21_new, Aug21_new, Sep21_new, Oct21_new, Nov21_new, Dec21_new, Jan22_new, Feb22_new, Mar22_new, Apr22_new)
+```
+<br>
+
+Correcting datatypes
+```{r correcting datatypes}
+# changes the datatype of 'rideable_type', 'member_casual', 'month' to `factor`
+all_bike$rideable_type <- as.factor(all_bike$rideable_type)
+all_bike$member_casual <- as.factor(all_bike$member_casual)
+all_bike$month <- as.factor(all_bike$month)
+```
+<br>
+
+Summary of `all_bike`
+```{r all_bike summary}
+# shows statistical summaries and frequencies of the data
+summary(all_bike)
+```
+We can see the quartiles for quantitative attributes and the frequency classes for factor. Missing values are also shown, but not complete.
+<br><br>
+
+#### **3.1.1 Missing values**
+Finding out if there are any other missing values in `all_bike`
+```{r missing values}
+# sums the missing values of each attribute
+sapply(all_bike, function(x) sum(is.na(x)))
+```
+Here we can see the all the attributes' corresponding missing values.
+<br><br>
+
+#### **3.2 Data Cleaning and Manipulation**
+We will add a new row `ride_length`, calculated using the difference of `ended_at` and `start_at`. This gives us the trip duration for a record.
+```{r ride_length}
+all_bike_m1 <- mutate(
+  
+  # add new ride_length column by subtracting started_at from ended_at
+  all_bike, ride_length = ended_at - started_at,
+  
+  # add new day_of_week column to show the day of the week
+  day_of_week = weekdays.POSIXt(started_at)
+  )
+
+# print ride_length and day_of_week columns
+select(all_bike_m1, ride_length, day_of_week)
+```
+<br>
+
+Since the `docked_bike` value in `rideable_type` is not part of commercial data, we will be removing it. We will also change `ride_length` to a `numeric` datatype to ease future descriptive analysis, as well as change `day_of_week` datatype to `factor`.
+```{r cleaning-1}
+# new dataframe that does not include records with 'docked_bike'
+all_bike_m2 <- subset(all_bike_m1, rideable_type != "docked_bike")
+
+# changes the datatype of 'ride_length' to numeric
+all_bike_m2$ride_length <- as.numeric(all_bike_m2$ride_length)
+
+# changes the datatype of 'day_of_week' to factor
+all_bike_m2$day_of_week <- as.factor(all_bike_m2$day_of_week)
+```
+<br>
+
+Summarise cleaned dataframe `all_bike_m2`.
+```{r all_bike_m2 summary}
+# shows statistical summaries and frequencies of the cleaned data
+summary(all_bike_m2)
+```
+<br>
+
+`all_bike_m2` summary shows `ride_length` with negative values, which needs to be removed.
+```{r cleaning-2}
+# new dataframe with no negative values for 'ride_length'
+all_bike_m3 <- subset(all_bike_m2, ride_length >=0)
+```
+<br>
+**Cleaning and Manipulation Summary**
+
+
+* Changed `rideable_type` datatype to `factor`.
+* Changed `member_casual` datatype to `factor`.
+* Changed `month` datatype to `factor`.
+* Added new `ride_length` column by subtracting `started_at` from `ended_at`.
+* Added new `day_of_week` column to show the day of the week.
+* Removed records with `docked_bike` values for `rideable_type` attribute.
+* Changed `ride_length` datatype to `numeric`.
+* Changed `day_of_week` datatype to `factor`.
+* Removed records with negative values for `ride_length`.
+<br><br>
+
+###  **4.0 Analyse**
+#### **4.1 Descriptive Analysis**
+Statistical analysis of the data.
+```{r summary stats}
+# summary statistics
+summary(all_bike_m3)
+```
+
+```{r month stats}
+# summary statistics for month, sorted in descending
+all_bike_m3 %>% count(month, sort = TRUE)
+```
+
+
+From the above summaries, we can conclude that: <br>
+1. Most used bike type was classic, with possibility of it being   more preferred than the electric, or there are more classic in circulation.  
+2. Members makes up the majority of riders, at 59%.  
+3. Average duration of a ride is about 18mins.  
+4. Most rides happened on a Saturday. It could be that bikes were preferred due to heavier roads, or leisure time increases the usage of bikes.  
+5. Top 3 months with highest ride counts are July, August, and September, which are summer months with higher leisure activity.
+<br><br>
+
+###  **5.0 Share**
+#### **5.1 Data Visualisations**
+Load ggplot2 package for data visuals
+```{r load ggplot, warning=FALSE, message=FALSE}
+library(ggplot2)
+require(scales)
+```
+<br>
+**5.1.1 Comparing Ride Durations**
+```{r ride duration}
+ggplot(data = all_bike_m3, aes(x=member_casual, y=ride_length)) +   # set axis
+  geom_boxplot(aes(fill=rideable_type), outlier.shape = NA) +       # create boxplot without outliers
+  coord_cartesian(ylim = c(0, 4000)) +                              # limit y-axis values
+  scale_y_continuous(labels = comma)  +                             # change y-axis labels to have commas
+  xlab("Membership Type") + ylab("Duration (seconds)") +            # create axis labels
+  ggtitle("Time Spent per Ride") +                                  # create title
+  guides(fill=guide_legend(title="Bike Type")) +                    # create legend with title
+  theme_classic() +                                                 # set theme
+  theme(plot.title = element_text(hjust = 0.5))                     # center title
+```
+<br>
+1. Distributions of all four boxplots are positively-skewed.  
+2. Casual riders tend to ride more than Member Riders.  
+3. Classic Bike has longer ride time than electric bike in both membership classes.  
+<br>
+**5.1.2 Frequency of Rides per Week**
+```{r freq of rides}
+# create vector for plot re-ordering
+day_of_week_order <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+
+ggplot(all_bike_m3, aes(x=day_of_week, fill=member_casual)) +   # set axis
+  geom_bar(position = "dodge") +                                # create bar graph, set to grouped
+  scale_x_discrete(limit=day_of_week_order) +                   # re-order x-axis based on created vector
+  scale_y_continuous(labels = comma) +                          # change y-axis labels to have commas
+  xlab("Day of Week") + ylab("Frequency") +                     # create axis labels
+  ggtitle("Number of Rides per Day of the Week") +              # create title
+  guides(fill=guide_legend(title="Membership")) +               # create legend with title
+  theme_classic() +                                             # set theme
+  theme(plot.title = element_text(hjust = 0.5))                 # center title
+```
+<br>
+1. Members generally ride more often than casual riders.  
+2. Casual riders ride more often on weekends, while the opposite happens for members.
+<br><br>
+**5.1.3 Monthly Time Series on Rides for Casual Riders**
+```{r timeseries rides}
+ggplot(all_bike_m3, aes(x=started_at, color=member_casual)) +   # set axis
+  geom_density(alpha=0.3) +                                     # create density plot
+  xlab("Date") + ylab("Density") +                              # create axis labels
+  ggtitle("Ride Density") +                                     # create title
+  guides(color=guide_legend(title="Membership")) +              # create legend with title
+  theme_classic() +                                             # set theme
+  theme(plot.title = element_text(hjust = 0.5))                 # center title
+```
+<br>
+1. Cyclical pattern - peaks late mid-year, bottoms at the start of the year.
+2. Casual member demonstrates the pattern with more extreme.
+<br><br>
+**5.1.4 Most Frequent Starting Stations for Casual Riders**
+```{r start station casual}
+# filter for casual riders with no missing values in 'start station name' attribute
+all_bike_m3_casualonly <-  subset(all_bike_m3, member_casual != "member")
+all_bike_m3_casual_SSN <-  subset(all_bike_m3_casualonly, !is.na(start_station_name))
+# replicated same code or member riders by changing this filter for casual to members.
+
+# sort descending and select top 5 rows
+top5startstations <- all_bike_m3_casual_SSN  %>%
+  count(start_station_name, sort = TRUE) %>%
+  slice(1:5)
+
+ggplot(top5startstations, aes(x=reorder(start_station_name, n), y=n)) +   # set axis
+  geom_bar(stat="identity", fill="#ff7571") +                             # create bar graph, set colour
+  coord_flip() +                                                          # set to horizontal graph
+  xlab("Location") + ylab("Count") +                                      # create axis labels
+  ggtitle("Starting Stations for Casual Riders") +                        # create title
+  theme_classic() +                                                       # set theme
+  theme(plot.title = element_text(hjust = 0.5))                           # center title
+
+```
+
+```{r start station member, echo=FALSE}
+# filter for member riders with no missing values in 'start station name' attribute
+all_bike_m3_memberonly <-  subset(all_bike_m3, member_casual = "member")
+all_bike_m3_member_SSN <-  subset(all_bike_m3_memberonly, !is.na(start_station_name))
+
+# sort descending and select top 5 rows
+top5startstationsmember <- all_bike_m3_member_SSN  %>%
+  count(start_station_name, sort = TRUE) %>%
+  slice(1:5)
+
+ggplot(top5startstationsmember, aes(x=reorder(start_station_name, n), y=n)) +   # set axis
+  geom_bar(stat="identity", fill="#00bfc3") +                                   # create bar graph, set colour
+  coord_flip() +                                                                # set to horizontal graph
+  xlab("Location") + ylab("Count") +                                            # create axis labels
+  ggtitle("Starting Stations for Member Riders") +                              # create title
+  theme_classic() +                                                             # set theme
+  theme(plot.title = element_text(hjust = 0.5))                                 # center title
+```
+<br>
+1. Both membership shares the most frequent starting station.  
+2. Top 5 stations for casual riders tend to be right beside parks, while member rides tend to have a mix between being near parks and in urban areas.  
+3. Data might not be representative due to large amount of missing values, hence may be biased.
+<br><br>
+
+###  **6.0 Act**
+We will now summarise our findings and present guides for future marketing programs.
+<br><br>
+**6.1 How do annual members and casual riders use Cyclistic bikes differently**  
+Comparing Casual to Member riders, Casual riders tend to:   
+1. Use bikes for prolonged periods.  
+2. Ride more on weekends.  
+3. Have stronger ride count during June to September.  
+4. Start their rides near parks.
+<br><br>
+**6.2 Why would casual riders buy Cyclistic annual memberships?**  
+Casual riders looks to be leisure individuals, who utilise the bikes for longer trips. Hence, it may be effective to offer incentives for longer rides, such as discounts after 15mins of riding. Casual rides happen more often on weekends and summer months. Creating a new membership type for periodic riders may be more effective than annual memberships; cheaper rides only on weekends/summer months.
+<br><br>
+**6.3 How can Cyclistic use digital media to influence casual riders to become members?**  
+Social media advertising should target a demographic with active individuals with cycling hobbies. Physical advertisements should be done around stations near parks.
+<br><br>
+**6.4 Improvements and feedback**  
+Data should include more information about a rider to better understand and differentiate casual and members riders. 
