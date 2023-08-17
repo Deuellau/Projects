@@ -6,9 +6,6 @@ This project centres on identifying potential defaulters for a bank that provide
 **Skills and Tools Used:** <br>
 The Pandas and NumPy libraries facilitated data manipulation and preprocessing, while the Matplotlib and Seaborn libraries enabled insightful visualisations. The application of TargetEncoder and StandardScaler from scikit-learn ensured effective feature engineering and scaling. The predictive modeling phase made use of an ensemble of classifiers. The models were evaluated using performance metrics from scikit-learn as well.
 
-**Approach and Techniques:** <br>
-The project's approach encompassed strategic feature engineering, involving the elimination of uncorrelated and multicollinearity features, as well as the creation of new data bins. Addressing missing values and standardising value names were crucial steps, alongside normalising numeric attributes. For modeling, seven classification models were constructed, trained, and rigorously evaluated. The pinnacle model underwent hyperparameter tuning, finalising an efficient predictive framework.
-
 **Findings and Learnings:** <br>
 The findings reveal that the model demonstrates strong accuracy in detecting non-defaulters. However, its performance is notably weaker in identifying defaulters. This indicates the model's effectiveness in classifying non-defaulters while highlighting the need for improvement when recognising defaulters to enhance overall predictive capabilities. Raw data proved challenging due to the extensive cleaning it had to go through before being used for modeling.
 
